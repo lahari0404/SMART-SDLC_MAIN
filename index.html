@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartSDLC AI Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Sidebar Toggle Button -->
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>Prompt History</h2>
+    <ul id="historyList"></ul>
+    <div class="about-link">
+      <a href="about.html">About Us</a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-container" id="mainContainer">
+    <h1>Smart SDLC AI Dashboard</h1>
+    <div class="container">
+      <textarea id="userInput" placeholder="Enter your requirement, code, or query here..."></textarea>
+
+      <div class="button-group">
+        <button onclick="callEndpoint('analyze')">Analyze Requirement</button>
+        <button onclick="callEndpoint('generate-code')">Generate Code</button>
+        <button onclick="callEndpoint('create-tests')">Create Tests</button>
+        <button onclick="callEndpoint('fix-bugs')">Fix Bugs</button>
+        <button onclick="callEndpoint('generate-docs')">Generate Docs</button>
+      </div>
+
+      <div id="output">
+        <h2>AI Output:</h2>
+        <pre id="resultBox">Waiting for your input...</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("show");
+      document.getElementById("mainContainer").classList.toggle("shrink");
+    }
+
+    function updateHistory(prompt) {
+      const historyList = document.getElementById("historyList");
+      const now = new Date();
+      const timeString = now.toLocaleString();
+      const listItem = document.createElement("li");
+      listItem.textContent = `${timeString} - ${prompt}`;
+      historyList.prepend(listItem);
+    }
+
+    async function callEndpoint(endpoint) {
+      const input = document.getElementById("userInput").value;
+      const resultBox = document.getElementById("resultBox");
+      if (!input.trim()) {
+        resultBox.textContent = "Please enter some input.";
+        return;
+      }
+
+      resultBox.textContent = "Processing...";
+      updateHistory(input);  // Save history
+
+      const formData = new FormData();
+      formData.append("input", input);
+
+      try {
+        const response = await fetch(`http://localhost:8000/${endpoint}`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error("Server error");
+
+        const data = await response.json();
+        resultBox.textContent = data.response || "No response from AI model.";
+      } catch (error) {
+        resultBox.textContent = "Error: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
